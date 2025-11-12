@@ -122,7 +122,7 @@ public final class ChatCompletionRequest {
         if (isChange) {
             this.responseFormat = JSON_OBJECT;
             Map<String, Object> schema = builder.responseFormat.jsonSchema().schema();
-            String message = "请以随后的JSON格式返回结果: " + Json.toJson(schema);
+            String message = "璇蜂互闅忓悗鐨凧SON鏍煎紡杩斿洖缁撴灉: " + Json.toJson(schema);
             UserMessage user = UserMessage.from(message);
             List<Message> result = new ArrayList<>(builder.messages);
             result.add(user);
