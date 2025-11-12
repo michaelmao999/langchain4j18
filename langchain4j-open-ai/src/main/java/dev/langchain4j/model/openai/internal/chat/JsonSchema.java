@@ -29,6 +29,10 @@ public class JsonSchema {
         this.schema = builder.schema;
     }
 
+    public Map<String, Object> schema() {
+        return schema;
+    }
+
     @Override
     public boolean equals(Object another) {
         if (this == another) return true;

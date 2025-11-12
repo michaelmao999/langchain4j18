@@ -9,7 +9,11 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import dev.langchain4j.internal.Json;
+import dev.langchain4j.model.openai.OpenAiChatModelName;
 import dev.langchain4j.model.openai.internal.shared.StreamOptions;
+
+import static dev.langchain4j.model.openai.internal.chat.ResponseFormatType.JSON_SCHEMA;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +28,9 @@ import static java.util.Collections.unmodifiableMap;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public final class ChatCompletionRequest {
+
+    private static ResponseFormat JSON_OBJECT =
+            ResponseFormat.builder().type(ResponseFormatType.JSON_OBJECT).build();
 
     @JsonProperty
     private final String model;
@@ -81,7 +88,7 @@ public final class ChatCompletionRequest {
 
     public ChatCompletionRequest(Builder builder) {
         this.model = builder.model;
-        this.messages = builder.messages;
+
         this.temperature = builder.temperature;
         this.topP = builder.topP;
         this.n = builder.n;
@@ -94,7 +101,6 @@ public final class ChatCompletionRequest {
         this.frequencyPenalty = builder.frequencyPenalty;
         this.logitBias = builder.logitBias;
         this.user = builder.user;
-        this.responseFormat = builder.responseFormat;
         this.seed = builder.seed;
         this.tools = builder.tools;
         this.toolChoice = builder.toolChoice;
@@ -106,6 +112,26 @@ public final class ChatCompletionRequest {
         this.functions = builder.functions;
         this.functionCall = builder.functionCall;
         this.customParameters = builder.customParameters;
+        boolean isChange = false;
+        OpenAiChatModelName model = OpenAiChatModelName.getEnumByName(this.model);
+        if (OpenAiChatModelName.DEEPSEEK_CHAT.equals(model) || OpenAiChatModelName.QWEN_MAX.equals(model)) {
+            if (JSON_SCHEMA.equals(builder.responseFormat.type())){
+                isChange = true;
+            }
+        }
+        if (isChange) {
+            this.responseFormat = JSON_OBJECT;
+            Map<String, Object> schema = builder.responseFormat.jsonSchema().schema();
+            String message = "请以随后的JSON格式返回结果: " + Json.toJson(schema);
+            UserMessage user = UserMessage.from(message);
+            List<Message> result = new ArrayList<>(builder.messages);
+            result.add(user);
+            this.messages = result;
+        } else {
+            this.messages = builder.messages;
+            this.responseFormat = builder.responseFormat;
+        }
+
     }
 
     public String model() {
@@ -217,7 +243,9 @@ public final class ChatCompletionRequest {
 
     @Override
     public boolean equals(Object another) {
-        if (this == another) return true;
+        if (this == another) {
+            return true;
+        }
         return another instanceof ChatCompletionRequest
                 && equalTo((ChatCompletionRequest) another);
     }

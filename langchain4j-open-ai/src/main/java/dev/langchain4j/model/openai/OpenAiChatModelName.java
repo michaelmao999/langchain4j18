@@ -1,5 +1,8 @@
 package dev.langchain4j.model.openai;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum OpenAiChatModelName {
 
     GPT_3_5_TURBO("gpt-3.5-turbo"), // alias
@@ -54,7 +57,12 @@ public enum OpenAiChatModelName {
 
     GPT_5("gpt-5"),
     GPT_5_MINI("gpt-5-mini"),
-    GPT_5_NANO("gpt-5-nano")
+    GPT_5_NANO("gpt-5-nano"),
+
+    DEEPSEEK_CHAT("deepseek-chat"),
+    DEEPSEEK_REASONER("deepseek-reasoner"),
+    QWEN_MAX("qwen-plus"),
+
     ;
 
     private final String stringValue;
@@ -67,4 +75,17 @@ public enum OpenAiChatModelName {
     public String toString() {
         return stringValue;
     }
+
+    private static Map<String, OpenAiChatModelName> codeMap = new HashMap<>();
+
+    static {
+        for (OpenAiChatModelName e : OpenAiChatModelName.values()) {
+            codeMap.put(e.stringValue, e);
+        }
+    }
+
+    public static OpenAiChatModelName getEnumByName(String name) {
+        return codeMap.get(name);
+    }
+
 }
